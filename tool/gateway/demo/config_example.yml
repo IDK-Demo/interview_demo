@@ -1,0 +1,10 @@
+cpu_affinity: 9
+interface: enp9s0
+
+src_port: 44904
+dst_port: 443
+dst_ip: 13.113.253.11
+
+ws:
+  host: fstream.binancsdfsdfe2.com
+  path: /ws/btcusdt@bookTicker

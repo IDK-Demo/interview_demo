@@ -1,0 +1,7 @@
+name: interview_demo
+type: cpp
+
+dependencies:
+  - name: dpdk
+    branch: release/25.03
+    as_artefacts: True
