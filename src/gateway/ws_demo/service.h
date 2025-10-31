@@ -27,6 +27,8 @@ public:
   int
   run();
 
+  void run_worker(const InstanceConfig& config);
+
 private:
   void process_payload(base::ByteView payload);
 
@@ -34,13 +36,6 @@ private:
   Args args;
   base::ToolLauncherContext* ctx;
 
-  std::optional<net::Dpdk> dpdk;
-  std::optional<net::arp::ArpHandler> arp_handler;
-
-  std::optional<net::wss::Client> connection;
-  std::vector<uint64_t> per_instrument_last_json_id;
-
-  net::Interface interface;
   net::InterfaceManager interface_manager;
 };
 

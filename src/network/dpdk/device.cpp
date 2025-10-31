@@ -8,8 +8,8 @@
 
 namespace idk::net::dpdk {
 
-Device::Device(const std::string& pci_addr, uint16_t port_id, const std::string& interface_name)
-  : pci_addr(pci_addr), port_id_(port_id), interface_name_(interface_name) {
+Device::Device(const std::string& pci_addr, uint16_t port_id, const std::string& interface_name, uint16_t queue_id)
+  : pci_addr(pci_addr), port_id_(port_id), interface_name_(interface_name), queue_id_(queue_id) {
   auto name = fmt::format("pool_{}", port_id);
   mbuf_pool = rte_mempool_lookup(name.c_str());
   REQUIRE(mbuf_pool, "Failed to lookup mbuf_pool");
@@ -25,7 +25,7 @@ Device::receive() {
   std::optional<RxPacket> ret;
   if (current_recieve_mbuf_idx == receive_mbufs.size()) {
     receive_mbufs.resize(kReceiveBurstSize);
-    auto cnt = rte_eth_rx_burst(port_id_, 0, receive_mbufs.data(), receive_mbufs.size());
+    auto cnt = rte_eth_rx_burst(port_id_, queue_id_, receive_mbufs.data(), receive_mbufs.size());
     receive_mbufs.resize(cnt);
     current_recieve_mbuf_idx = 0;
     last_receive_time_point = base::SyncRdtscClock::now();
@@ -47,7 +47,7 @@ Device::enqueue_for_send(TxPacket packet, size_t size) {
   auto* tx_packet = packet.release();
   tx_packet->data_len = size;
   tx_packet->pkt_len = size;
-  REQUIRE(rte_eth_tx_burst(port_id_, 0, &tx_packet, 1) == 1, "failed to send");
+  REQUIRE(rte_eth_tx_burst(port_id_, queue_id_, &tx_packet, 1) == 1, "failed to send");
 }
 
 base::SyncRdtscClock::time_point
@@ -79,7 +79,7 @@ Device::flush_send_queue() {
   if (send_mbufs.empty()) {
     return;
   }
-  uint16_t sent = rte_eth_tx_burst(port_id_, 0, send_mbufs.data(), send_mbufs.size());
+  uint16_t sent = rte_eth_tx_burst(port_id_, queue_id_, send_mbufs.data(), send_mbufs.size());
 
   if (sent < send_mbufs.size()) {
     DEBUG("sent: {} of {}", sent, send_mbufs.size());
