@@ -8,10 +8,13 @@
 
 namespace idk {
 
+
 struct GatewayConfig {
+  static constexpr bool kLoggable = true;
   net::wss::Client::Config ws;
 
   size_t cpu_affinity;
+  uint16_t queue_id;
   std::string interface;
 
   uint16_t src_port;

@@ -1,10 +1,24 @@
-cpu_affinity: 9
-interface: enp9s0
+instances:
+  - cpu_affinity: 9
+    interface: enp8s0
+    queue: 0
 
-src_port: 44904
-dst_port: 443
-dst_ip: 13.113.253.11
+    src_port: 44904
+    dst_port: 443
+    dst_ip: 13.113.253.11
 
-ws:
-  host: fstream.binancsdfsdfe2.com
-  path: /ws/btcusdt@bookTicker
+    ws:
+      host: fstream.binance.com
+      path: /ws/btcusdt@bookTicker
+
+  - cpu_affinity: 8
+    interface: enp8s0
+    queue: 0
+
+    src_port: 44905
+    dst_port: 443
+    dst_ip: 13.113.253.11
+
+    ws:
+      host: fstream.binance.com
+      path: /ws/btcusdt@bookTicker

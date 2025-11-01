@@ -12,14 +12,22 @@ WsDemoServiceImpl::WsDemoServiceImpl(Args args_, base::ToolLauncherContext* ctx)
 int
 WsDemoServiceImpl::run() {
   auto config = base::parse_file<Config>(args.config.value());
+
+  run_worker(config);
+
+  return 0;
+}
+
+void
+WsDemoServiceImpl::run_worker(const Config& config) {
   base::Cpu::bind_this_thread_to_cpu(config.cpu_affinity);
 
-  interface = interface_manager.get_interface(config.interface);
-  dpdk.emplace(net::Dpdk{interface_manager, {{config.interface, config.cpu_affinity}}});
-  auto* device = &dpdk->get_device(config.interface);
+  auto interface = interface_manager.get_interface(config.interface);
+  net::Dpdk dpdk(net::Dpdk{interface_manager, {{config.interface, config.cpu_affinity, config.queue_id}}});
+  auto* device = &dpdk.get_device(config.interface);
   std::ignore = device->clear_receive_queue();
 
-  arp_handler.emplace(net::Host{.mac = interface.mac, .ip = interface.ip}, device->get_sender());
+  net::arp::ArpHandler arp_handler(net::Host{.mac = interface.mac, .ip = interface.ip}, device->get_sender());
 
   net::tcp::Client tcp(
      net::Connection{
@@ -30,7 +38,7 @@ WsDemoServiceImpl::run() {
      },
      device->get_sender());
 
-  connection.emplace(config.ws, std::move(tcp));
+  net::wss::Client connection(config.ws, std::move(tcp));
 
   while (!ctx->is_stopped()) {
     const auto raw_packet = device->receive();
@@ -39,7 +47,7 @@ WsDemoServiceImpl::run() {
       TRACE("Eth packet of ARP: {} valid: {} header: {}", eth.header().type == net::EthernetType::Arp, eth.is_valid(),
             eth.header());
       if (eth.header().type == net::EthernetType::Arp) {
-        arp_handler->handle_packet(raw_packet->bytes());
+        arp_handler.handle_packet(raw_packet->bytes());
         continue;
       }
       if (eth.header().type != net::EthernetType::Ipv4) {
@@ -53,17 +61,15 @@ WsDemoServiceImpl::run() {
 
       net::tcp::PacketView tcp(ip);
 
-      connection->process_packet(tcp);
-      auto payload = connection->next_message();
+      connection.process_packet(tcp);
+      auto payload = connection.next_message();
       while (payload) {
         process_payload(payload.value());
-        payload = connection->next_message();
+        payload = connection.next_message();
       }
       TRACE("No payload. Going to next packet");
     }
   }
-
-  return 0;
 }
 
 void

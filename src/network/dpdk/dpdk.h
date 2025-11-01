@@ -16,6 +16,7 @@ public:
   struct DeviceInfo {
     std::string interface_name;
     size_t cpu_affinity;
+    uint16_t queue_id{0};
   };
   Dpdk(const InterfaceManager& interface_manager, const std::vector<DeviceInfo>& devices_info);
   Dpdk(Dpdk&& rhs) = default;

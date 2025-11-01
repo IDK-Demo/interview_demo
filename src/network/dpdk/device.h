@@ -88,7 +88,7 @@ public:
 
   ~Device();
 
-  Device(const std::string& pci_addr, uint16_t port_id, const std::string& interface_name);
+  Device(const std::string& pci_addr, uint16_t port_id, const std::string& interface_name, uint16_t queue_id = 0);
 
 private:
   friend Sender;
@@ -101,6 +101,7 @@ private:
   std::string pci_addr;
   std::string interface_name_;
   uint16_t port_id_;
+  uint16_t queue_id_;
   uint16_t max_tx_packet_size{};
 
   // TODO StaticVector

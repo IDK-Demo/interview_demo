@@ -81,7 +81,7 @@ Dpdk::Dpdk(const InterfaceManager& interface_manager, const std::vector<DeviceIn
         REQUIRE(!devices_info.empty(), "No devices provided");
         INFO("Initializing DPDK of version {}", rte_version());
         std::string cpu_str;
-        for (const auto& [_, cpu_id]: devices_info) {
+        for (const auto& [_, cpu_id, _1]: devices_info) {
           cpu_str += std::to_string(cpu_id) + ",";
         }
         if (!cpu_str.empty()) {
@@ -98,13 +98,13 @@ Dpdk::Dpdk(const InterfaceManager& interface_manager, const std::vector<DeviceIn
         REQUIRE(rte_eal_init(eal_argc, const_cast<char**>(eal_args)) == eal_argc - 1, "Failed to initialize EAL: {}",
                 impl::rte_eal_init_error(rte_errno));
 
-        for (const auto& [interface_name, _]: devices_info) {
+        for (const auto& [interface_name, _, queue_id]: devices_info) {
           const auto pci_addr = interface_manager.get_interface(interface_name).pci;
           INFO("Initializing DPDK device: {}", pci_addr);
           auto port_id = impl::dpdk_port_by_pci_addr(pci_addr);
           INFO("Device {} is on port {}", pci_addr, port_id);
           REQUIRE(rte_eth_dev_is_valid_port(port_id), "Device {} is not attached", pci_addr);
-          devices.emplace_back(pci_addr, port_id, interface_name);
+          devices.emplace_back(pci_addr, port_id, interface_name, queue_id);
         }
       },
       "DPDK failed to initialize. Are you launching under sudo?");
