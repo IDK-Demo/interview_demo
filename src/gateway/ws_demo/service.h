@@ -27,7 +27,7 @@ public:
   int
   run();
 
-  void run_worker(const InstanceConfig& config);
+  void run_worker(const Config& config);
 
 private:
   void process_payload(base::ByteView payload);

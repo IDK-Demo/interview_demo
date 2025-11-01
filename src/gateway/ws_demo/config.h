@@ -8,7 +8,8 @@
 
 namespace idk {
 
-struct InstanceConfig {
+
+struct GatewayConfig {
   static constexpr bool kLoggable = true;
   net::wss::Client::Config ws;
 
@@ -19,11 +20,6 @@ struct InstanceConfig {
   uint16_t src_port;
   uint16_t dst_port;
   net::Ip dst_ip;
-};
-
-struct GatewayConfig {
-  static constexpr bool kLoggable = true;
-  std::vector<InstanceConfig> instances;
 };
 
 }

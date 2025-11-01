@@ -11,9 +11,7 @@ WsDemoServiceImpl::WsDemoServiceImpl(Args args_, base::ToolLauncherContext* ctx)
 
 int
 WsDemoServiceImpl::run() {
-  auto instances_configs = base::parse_file<Config>(args.config.value());
-  auto config = instances_configs.instances.at(1);
-  INFO("config: {}", instances_configs);
+  auto config = base::parse_file<Config>(args.config.value());
 
   run_worker(config);
 
@@ -21,7 +19,7 @@ WsDemoServiceImpl::run() {
 }
 
 void
-WsDemoServiceImpl::run_worker(const InstanceConfig& config) {
+WsDemoServiceImpl::run_worker(const Config& config) {
   base::Cpu::bind_this_thread_to_cpu(config.cpu_affinity);
 
   auto interface = interface_manager.get_interface(config.interface);
